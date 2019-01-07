@@ -923,17 +923,22 @@ def get_most_common_resolution_per_video_session(final_df):
     for deployment in deployments_list:
         video_sessions_ids_list = final_df.loc[final_df["deployment"] == deployment].session_ids.unique()
         for video_session in video_sessions_ids_list:
+            print "Deployment: "+deployment+", session ID: "+video_session
+            if video_session == "netflix_34:a3:95:6d:56:32_1517959025000_1517959270000":
+                print "Pause"
             query_str = "deployment == '"+deployment+"' & session_ids == '"+video_session+"'"
             tmp_df = final_df.query(query_str)
-            common_res = tmp_df.loc[:, "metric"].mode()[0]
+            if tmp_df.loc[:, "metric"].mode().size > 0:
+                common_res = tmp_df.loc[:, "metric"].mode()[0]
+            else:
+                common_res = tmp_df.iloc[0]["metric"]
 
-            deployments_array.append(tmp_df[0]["deployment"])
-            metrics_array.append(tmp_df[0]["metric"])
-            service_array.append(tmp_df[0]["service"])
-            session_ids_array.append(tmp_df[0]["session_ids"])
-            event_dates_array.append(tmp_df[0]["Event_date"])
+            deployments_array.append(tmp_df.iloc[0]["deployment"])
+            metrics_array.append(common_res)
+            service_array.append(tmp_df.iloc[0]["service"])
+            session_ids_array.append(tmp_df.iloc[0]["session_ids"])
+            event_dates_array.append(tmp_df.iloc[0]["Event_date"])
 
-            print "Pause"
 
     final_df_common_res["deployment"] = deployments_array
     final_df_common_res["metric"] = metrics_array
