@@ -5,6 +5,8 @@ import numpy as np
 import csv
 from datetime import datetime
 import argparse
+import seaborn as sns
+plt.style.use('seaborn')
 
 def plot_inference_startup_CDF(df, percentile):
 
@@ -340,24 +342,121 @@ def plot_scatter_infer_vs_down_bitrate_with_service(deployment, down_bitrate, me
 
     return 0
 
-def create_heatmap_per_service_down_bitrate(service_metrics, service_bitrates, service, target):
+# def create_heatmap_per_service_down_bitrate(service_metrics, service_bitrates, service, target):
+#
+#     print "Plotting heatmap for "+target+" for "+service
+#
+#     heatmap, xedges, yedges = np.histogram2d(service_metrics, service_bitrates, bins=(1024, 768))
+#     extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
+#
+#     plt.clf()
+#     plt.imshow(heatmap.T, extent=extent, origin='lower')
+#     plt.show()
+#
+#     return 0
 
-    print "Plotting heatmap for "+target+" for "+service
+def create_density_plots(service_metrics, service_bitrates, service, target, metric):
 
-    heatmap, xedges, yedges = np.histogram2d(service_metrics, service_bitrates, bins=(1024, 768))
-    extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
+    if metric == "capacity":
+        print "Plotting Scatter Plot, Hexbin and Heatmap for " + service + " data, inferred down capacity vs " + target
+    else:
+        print "Plotting Scatter Plot, Hexbin and Heatmap for " + service + " data, down throughput vs " + target
 
-    plt.clf()
-    plt.imshow(heatmap.T, extent=extent, origin='lower')
-    plt.show()
+    figs_path = "./Figures/Heatmap_Plots/" + metric.title() + "/"+target.title()+"/"
+    fig_name = service + ".png"
+
+    if not os.path.exists(figs_path):
+        os.makedirs(figs_path)
+
+    # Create a figure with 3 plot areas
+    fig, axes = plt.subplots(ncols=3, nrows=1, figsize=(21, 5))
+
+    for i in range(3):
+
+        if metric == "capacity":
+            axes[i].set_xlabel("Down Inferred Capacity [Mbps]")
+            fig.suptitle("Down Inferred Capacity vs " + target.title() + " [" + service.title() + "]")
+        else:
+            axes[i].set_xlabel("Down Throughput [Mbps]")
+            fig.suptitle("Down Throughput vs " + target.title() + " [" + service.title() + "]")
+
+        if target == "startup":
+            axes[i].set_ylabel("Startup Time [sec]")
+        else:
+            axes[i].set_ylabel("Resolution [p]")
+            # axes[i].set_yticks((240, 480, 360, 720, 1080), ("240", "480", "360", "720", "1080"))
+            axes[i].set_yticks((240, 480, 360, 720, 1080))
+            axes[i].set_yticklabels(("240", "480", "360", "720", "1080"))
+
+    # Everything starts with a Scatterplot
+    axes[0].set_title('Scatterplot')
+    axes[0].plot(service_bitrates, service_metrics, 'ko')
+    # As you can see there is a lot of overplottin here!
+
+    nbins = 30
+
+    # Thus we can cut the plotting window in several hexbins
+    axes[1].set_title('Hexbin')
+    # axes[1].hexbin(service_metrics, service_bitrates, gridsize=nbins, cmap=plt.cm.BuGn_r)
+    axes[1].hexbin(service_bitrates, service_metrics, gridsize=nbins, cmap=plt.cm.coolwarm)
+
+    # 2D Histogram
+    axes[2].set_title('Heatmap')
+    # axes[2].hist2d(service_metrics, service_bitrates, bins=nbins, cmap=plt.cm.BuGn_r)
+    axes[2].hist2d(service_bitrates, service_metrics, bins=nbins, cmap=plt.cm.coolwarm)
+
+    fig.savefig(figs_path + fig_name, dpi=600)
+    # plt.show()
+    plt.close()
 
     return 0
 
-def create_scatter_plot_per_service(service_metrics, service_bitrates, service, target):
+def plot_sns_density(service_metrics, service_bitrates, service, target, metric):
 
-    print "Preparing " + service + " data to plot scatter plot down bitrates vs " + target
+    if metric == "capacity":
+        print "Plotting density plot for " + service + " data, inferred down capacity vs " + target
+    else:
+        print "Plotting density plot for " + service + " data, down throughput vs " + target
 
-    figs_path = "./Figures/Scatter_Plots/" + target.title() + "/Per_Service/"
+    figs_path = "./Figures/Density_Plots/" + metric.title() + "/"+target.title()+"/"
+    fig_name = service + ".png"
+
+    if not os.path.exists(figs_path):
+        os.makedirs(figs_path)
+
+    sns.kdeplot(service_bitrates, service_metrics, cmap="Reds", shade=True)
+
+    if metric == "capacity":
+        plt.title("Density plot for Inferred Down Capacity vs " + target.title() + " [" + service + "]", loc='center')
+        plt.xlabel("Inferred Down Capacity [Mbps]")
+    else:
+        plt.title("Density plot for Down Throughput vs " + target.title() + " [" + service + "]", loc='center')
+        plt.xlabel("Down Throughput [Mbps]")
+
+
+    if target == "startup":
+        plt.ylabel("Startup time [sec]")
+    else:
+        # resolutions = [240, 480, 360, 720, 1080]
+        plt.yticks((240, 480, 360, 720, 1080), ("240", "480", "360", "720", "1080"))
+        plt.ylabel("Resolution [p]")
+
+
+
+    plt.savefig(figs_path + fig_name, dpi=600)
+    # plt.show()
+    plt.close()
+
+    return 0
+
+def create_scatter_plot_per_service(service_metrics, service_bitrates, service, target, metric):
+
+    if metric == "capacity":
+        print "Plotting Scatter Plot for " + service + " data, inferred down capacity vs " + target
+    else:
+        print "Plotting Scatter Plot for " + service + " data, down throughput vs " + target
+
+    figs_path = "./Figures/Scatter_Plots/" + metric.title() + "/"+target.title()+"/"
     fig_name = service + ".png"
 
     if not os.path.exists(figs_path):
@@ -365,15 +464,19 @@ def create_scatter_plot_per_service(service_metrics, service_bitrates, service, 
 
     try:
         plt.scatter(service_bitrates, service_metrics, c='C0')
-        plt.title("Down Bitrate vs " + target.title() + " [" + service + "]")
+
+        if metric == "capacity":
+            plt.title("Down Inferred Capacity vs " + target.title() + " [" + service + "]")
+            plt.xlabel("Down Inferred Capacity [Mbps]")
+        else:
+            plt.title("Down Throughput vs " + target.title() + " [" + service + "]")
+            plt.xlabel("Down Throughput [Mbps]")
+
         if target == "startup":
             plt.ylabel("Startup time [sec]")
         else:
-            # resolutions = [240, 480, 360, 720, 1080]
             plt.yticks((240, 480, 360, 720, 1080), ("240", "480", "360", "720", "1080"))
             plt.ylabel("Resolution [p]")
-
-        plt.xlabel("Down Bitrate [Mbps]")
 
         plt.savefig(figs_path + fig_name, dpi=600)
         # plt.show()
@@ -415,7 +518,7 @@ def create_scatter_plot_per_service_inf_capacity(service_metrics, service_bitrat
 
     return 0
 
-def prepare_data_to_plot_with_service(bitrate_df, inference_df, target):
+def prepare_data_to_plot_with_service(bitrate_df, inference_df, target, bis_metric):
 
     bitrate_df.set_index(pd.DatetimeIndex(bitrate_df["Event_date"]), inplace=True)
     inference_df.set_index(pd.DatetimeIndex(inference_df["Event_date"]), inplace=True)
@@ -507,15 +610,20 @@ def prepare_data_to_plot_with_service(bitrate_df, inference_df, target):
             except Exception as excp:
                 print "Exception for " + deployment + " and " + service + ": " + str(excp)
 
-    create_scatter_plot_per_service(amazon_metrics, amazon_bitrates, "amazon", target)
-    create_scatter_plot_per_service(twitch_metrics, twitch_bitrates, "twitch", target)
-    create_scatter_plot_per_service(netflix_metrics, netflix_bitrates, "netflix", target)
-    create_scatter_plot_per_service(youtube_metrics, youtube_bitrates, "youtube", target)
+    create_scatter_plot_per_service(amazon_metrics, amazon_bitrates, "amazon", target, bis_metric)
+    create_scatter_plot_per_service(twitch_metrics, twitch_bitrates, "twitch", target, bis_metric)
+    create_scatter_plot_per_service(netflix_metrics, netflix_bitrates, "netflix", target, bis_metric)
+    create_scatter_plot_per_service(youtube_metrics, youtube_bitrates, "youtube", target, bis_metric)
 
-    # create_heatmap_per_service_down_bitrate(amazon_metrics, amazon_bitrates, "amazon", target)
-    # create_heatmap_per_service_down_bitrate(twitch_metrics, twitch_bitrates, "twitch", target)
-    # create_heatmap_per_service_down_bitrate(netflix_metrics, netflix_bitrates, "netflix", target)
-    # create_heatmap_per_service_down_bitrate(youtube_metrics, youtube_bitrates, "youtube", target)
+    create_density_plots(amazon_metrics, amazon_bitrates, "amazon", target, bis_metric)
+    create_density_plots(twitch_metrics, twitch_bitrates, "twitch", target, bis_metric)
+    create_density_plots(netflix_metrics, netflix_bitrates, "netflix", target, bis_metric)
+    create_density_plots(youtube_metrics, youtube_bitrates, "youtube", target, bis_metric)
+
+    plot_sns_density(amazon_metrics, amazon_bitrates, "amazon", target, bis_metric)
+    plot_sns_density(twitch_metrics, twitch_bitrates, "twitch", target, bis_metric)
+    plot_sns_density(netflix_metrics, netflix_bitrates, "netflix", target, bis_metric)
+    plot_sns_density(youtube_metrics, youtube_bitrates, "youtube", target, bis_metric)
 
     return 0
 
@@ -838,22 +946,25 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', '--target', type=str, required=True, help="Inference target: 'startup' or 'resolution'")
+    parser.add_argument('-m', '--metric', type=str, required=True, help="Inference target: 'throughput' or 'capacity'")
 
     args = vars(parser.parse_args())
 
     target = args["target"]
+    bis_metric = args["metric"]
 
     bitrate_df, metric_df = load_merge_dfs_by_time("./CSVs/By_Time/", target, with_service=True)
     # bitrate_df, metric_df = load_merge_dfs_by_time("./CSVs/By_Time/", target, with_service=False)
 
-    # bitrate_df = get_inferred_capacity(bitrate_df)
+    if bis_metric == "capacity":
+        bitrate_df = get_inferred_capacity(bitrate_df)
 
     # get_time_difference_between_closest_video_session_bitrate(bitrate_df, metric_df, target)
 
     # plot_CDF_target(metric_df, target)
 
     # prepare_data_to_plot(bitrate_df, metric_df, target)
-    prepare_data_to_plot_with_service(bitrate_df, metric_df, target)
+    prepare_data_to_plot_with_service(bitrate_df, metric_df, target, bis_metric)
     # prepare_data_to_plot_with_service_inf_capacity(bitrate_df, metric_df, target)
 
     # load_CSVs('./CSVs/')
