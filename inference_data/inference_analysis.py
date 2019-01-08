@@ -274,7 +274,6 @@ def get_stats_to_plot(inference_stats_dictionary, target):
 
     plot_inference_stats(deployments, avgs, perc_50s, perc_75s, perc_85s, perc_90s, target)
 
-    print "Placeholder"
     return 0
 
 def get_target_all_deployments(inference_dir, target):
@@ -910,6 +909,8 @@ def export_df_to_csv(final_df, target, with_service = False):
 
 def get_most_common_resolution_per_video_session(final_df):
 
+    print "Obtaining more common resolution per video session."
+
     final_df_common_res = pd.DataFrame(columns=["deployment", "metric", "service", "session_ids", "Event_date"])
 
     deployments_list = final_df.deployment.unique()
@@ -923,9 +924,9 @@ def get_most_common_resolution_per_video_session(final_df):
     for deployment in deployments_list:
         video_sessions_ids_list = final_df.loc[final_df["deployment"] == deployment].session_ids.unique()
         for video_session in video_sessions_ids_list:
-            print "Deployment: "+deployment+", session ID: "+video_session
-            if video_session == "netflix_34:a3:95:6d:56:32_1517959025000_1517959270000":
-                print "Pause"
+            # print "Deployment: "+deployment+", session ID: "+video_session
+            # if video_session == "netflix_34:a3:95:6d:56:32_1517959025000_1517959270000":
+            #     print "Pause"
             query_str = "deployment == '"+deployment+"' & session_ids == '"+video_session+"'"
             tmp_df = final_df.query(query_str)
             if tmp_df.loc[:, "metric"].mode().size > 0:

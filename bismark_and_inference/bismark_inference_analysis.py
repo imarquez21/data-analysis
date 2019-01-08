@@ -940,6 +940,40 @@ def get_inferred_capacity(bitrate_df):
 
     return bitrate_df
 
+def merge_dataframe(bitrate_df, inference_df):
+
+    master_df = pd.DataFrame(columns=["deployment", "down_capacity", "resolution"])
+
+    bitrate_deployments = bitrate_df["deployment"].unique()
+    inference_deployments = inference_df["deployment"].unique()
+
+    matching_deployments = set(bitrate_deployments) & set(inference_deployments)
+    matching_deployments = sorted(matching_deployments)
+
+    deployments_lists = []
+    resolutions = []
+    down_capacities = []
+
+    for deployment in matching_deployments:
+        query_str = "deployment == '"+deployment+"'"
+
+        tmp_bitrate_df = bitrate_df.query(query_str)
+        tmp_inference_df = inference_df.query(query_str)
+
+        inf_capacity = tmp_bitrate_df.iloc[0]["inf_capacity"]
+        res_per_deployment = tmp_inference_df["metric"].mode()[0]
+
+        deployments_lists.append(deployment)
+        down_capacities.append(inf_capacity)
+        resolutions.append(res_per_deployment)
+
+    master_df["deployment"] = deployments_lists
+    master_df["down_capacity"] = down_capacities
+    master_df["resolution"] = resolutions
+
+    master_df.to_csv("./CSVs/Resolution_per_deployment/res_per_deployment.csv")
+    return 0
+
 def main():
 
     print "Script Start"
@@ -958,15 +992,16 @@ def main():
 
     if bis_metric == "capacity":
         bitrate_df = get_inferred_capacity(bitrate_df)
+        if target == "resolution":
+            merge_dataframe(bitrate_df, metric_df)
 
     # get_time_difference_between_closest_video_session_bitrate(bitrate_df, metric_df, target)
-
     # plot_CDF_target(metric_df, target)
-
     # prepare_data_to_plot(bitrate_df, metric_df, target)
-    prepare_data_to_plot_with_service(bitrate_df, metric_df, target, bis_metric)
-    # prepare_data_to_plot_with_service_inf_capacity(bitrate_df, metric_df, target)
 
+    prepare_data_to_plot_with_service(bitrate_df, metric_df, target, bis_metric)
+
+    # prepare_data_to_plot_with_service_inf_capacity(bitrate_df, metric_df, target)
     # load_CSVs('./CSVs/')
 
     print "Script Completed"
