@@ -1030,6 +1030,13 @@ def group_deployments_by_down_capacity(capacity_df):
 
     capacity_df["group"] = group_list
 
+    # Lines to check the number of deployments per group.
+    # plt.clf()
+    # capacity_df.groupby('group').size().plot(kind='bar')
+    # plt.show()
+    # grouped_df = capacity_df.groupby("group").size()
+    # print grouped_df
+
     return capacity_df
 
 def get_metric_by_down_capacity_groups(capacity_df, metric_df):
@@ -1049,17 +1056,45 @@ def get_metric_by_down_capacity_groups(capacity_df, metric_df):
 
         metric_tmp_df = metric_df[metric_df["deployment"].isin(capacity_deployments)]
         metric_values_list = metric_tmp_df["metric"].values
+        num_matching_deployments = len(metric_tmp_df.deployment.unique())
 
         if len(metric_values_list) == 0:
             metric_values_list = np.array([])
 
-        capacity_metric_dict[group] = metric_values_list
+        capacity_metric_dict[group] = {
+            "values": metric_values_list,
+            "num_deployments": num_matching_deployments
+        }
 
     return capacity_metric_dict
 
 def prepare_data_to_plot_per_capacity_groups(capacity_metric_dict):
 
-    
+    print "Preparing data to plot 95 percentile for infered metric per down capacity group."
+
+    groups = []
+    percentiles = []
+    num_deployments = []
+    down_capacity_group_df = pd.DataFrame(columns=["group", "metric"])
+    for group in capacity_metric_dict:
+        try:
+            # print group + ": " + str(np.percentile(capacity_metric_dict[group], 96))
+            percentiles.append(np.percentile(capacity_metric_dict[group]["values"], 96))
+            num_deployments.append(capacity_metric_dict[group]["num_deployments"])
+            groups.append(group)
+        except Exception as excep:
+            print "Group "+str(group)+" is empty."
+            percentiles.append(0)
+            num_deployments.append(capacity_metric_dict[group]["num_deployments"])
+            groups.append(group)
+            print str(excep)
+
+    down_capacity_group_df["group"] = groups
+    down_capacity_group_df["metric"] = percentiles
+    down_capacity_group_df["num_deployments"] = num_deployments
+
+    down_capacity_group_df.sort_values(["group"], inplace=True, ascending=False)
+    print down_capacity_group_df
 
     return 0
 
@@ -1092,7 +1127,7 @@ def main():
 
     capacity_metric_dict = get_metric_by_down_capacity_groups(capacity_df, metric_df)
 
-
+    prepare_data_to_plot_per_capacity_groups(capacity_metric_dict)
 
     print "Pause"
     # prepare_data_to_plot_with_service(bitrate_df, metric_df, target, bis_metric)
