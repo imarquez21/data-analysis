@@ -929,18 +929,32 @@ def get_inferred_capacity(bitrate_df):
     print "Inferring Capacity from the 95 percentile of down bitrates per deployment."
 
     deployments = bitrate_df["deployment"].unique()
+
+    capacity_df = pd.DataFrame(columns=["deployment", "down_capacity"])
+
     all_bitrates = []
+    deployments_list = []
+    capacities_list = []
     for deployment in deployments:
         bitrates_list = bitrate_df.loc[bitrate_df["deployment"] == deployment]["Down_bitrate"].values
         inferred_capacity = np.percentile(bitrates_list, 95)
+
+        deployments_list.append(deployment)
+        capacities_list.append(inferred_capacity)
+
         for entry in bitrates_list:
             all_bitrates.append(inferred_capacity)
 
+    capacity_df["deployment"] = deployments_list
+    capacity_df["down_capacity"] = capacities_list
+
     bitrate_df["inf_capacity"] = all_bitrates
 
-    return bitrate_df
+    return bitrate_df, capacity_df
 
 def merge_dataframe(bitrate_df, inference_df):
+
+    print "Obtaining most common resolution per video session per deployment (across all services)"
 
     master_df = pd.DataFrame(columns=["deployment", "down_capacity", "resolution"])
 
@@ -971,8 +985,84 @@ def merge_dataframe(bitrate_df, inference_df):
     master_df["down_capacity"] = down_capacities
     master_df["resolution"] = resolutions
 
+    master_df = master_df.sort_values(["down_capacity"], ascending=False)
+
     master_df.to_csv("./CSVs/Resolution_per_deployment/res_per_deployment.csv")
     return 0
+
+def group_deployments_by_down_capacity(capacity_df):
+
+    print "Grouping deployments per down capacity."
+
+    group_list = []
+    for tuple in capacity_df.itertuples():
+        down_capacity = tuple.down_capacity
+
+        if down_capacity > 0 and down_capacity <= 50:
+            group_list.append("50")
+
+        if down_capacity > 50 and down_capacity <= 100:
+            group_list.append("100")
+
+        if down_capacity > 100 and down_capacity <= 150:
+            group_list.append("150")
+
+        if down_capacity > 150 and down_capacity <= 200:
+            group_list.append("200")
+
+        if down_capacity > 200 and down_capacity <= 250:
+            group_list.append("250")
+
+        if down_capacity > 250 and down_capacity <= 300:
+            group_list.append("300")
+
+        if down_capacity > 300 and down_capacity <= 350:
+            group_list.append("350")
+
+        if down_capacity > 350 and down_capacity <= 400:
+            group_list.append("400")
+
+        if down_capacity > 400 and down_capacity <= 450:
+            group_list.append("450")
+
+        if down_capacity > 450:
+            group_list.append("500")
+
+    capacity_df["group"] = group_list
+
+    return capacity_df
+
+def get_metric_by_down_capacity_groups(capacity_df, metric_df):
+
+    print "Getting list of values for inference metric based on Down Speeds groups."
+
+    groups_list = np.sort(capacity_df.group.unique())
+
+    capacity_metric_df = pd.DataFrame(index=groups_list)
+
+    capacity_metric_dict = {}
+
+    for group in groups_list:
+        capacity_query_str = "group == '"+group+"'"
+        capacity_tmp_df = capacity_df.query(capacity_query_str)
+        capacity_deployments = capacity_tmp_df["deployment"].values
+
+        metric_tmp_df = metric_df[metric_df["deployment"].isin(capacity_deployments)]
+        metric_values_list = metric_tmp_df["metric"].values
+
+        if len(metric_values_list) == 0:
+            metric_values_list = np.array([])
+
+        capacity_metric_dict[group] = metric_values_list
+
+    return capacity_metric_dict
+
+def prepare_data_to_plot_per_capacity_groups(capacity_metric_dict):
+
+    
+
+    return 0
+
 
 def main():
 
@@ -991,7 +1081,8 @@ def main():
     # bitrate_df, metric_df = load_merge_dfs_by_time("./CSVs/By_Time/", target, with_service=False)
 
     if bis_metric == "capacity":
-        bitrate_df = get_inferred_capacity(bitrate_df)
+        bitrate_df, capacity_df = get_inferred_capacity(bitrate_df)
+        capacity_df = group_deployments_by_down_capacity(capacity_df)
         if target == "resolution":
             merge_dataframe(bitrate_df, metric_df)
 
@@ -999,7 +1090,12 @@ def main():
     # plot_CDF_target(metric_df, target)
     # prepare_data_to_plot(bitrate_df, metric_df, target)
 
-    prepare_data_to_plot_with_service(bitrate_df, metric_df, target, bis_metric)
+    capacity_metric_dict = get_metric_by_down_capacity_groups(capacity_df, metric_df)
+
+
+
+    print "Pause"
+    # prepare_data_to_plot_with_service(bitrate_df, metric_df, target, bis_metric)
 
     # prepare_data_to_plot_with_service_inf_capacity(bitrate_df, metric_df, target)
     # load_CSVs('./CSVs/')
