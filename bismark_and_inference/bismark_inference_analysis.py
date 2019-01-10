@@ -1077,10 +1077,40 @@ def get_metric_by_down_capacity_groups(capacity_df, metric_df, target):
 
     return capacity_metric_dict
 
+def create_box_plot_startup(capacity_metric_dict):
+
+    print "Creating box plot for startup times."
+
+    fig_path = "./Figures/Down_Capacity_Groups/"
+    fig_file = "box_plot_startup_per_group.png"
+
+    capacity_metric_dict["050"] = capacity_metric_dict.pop("50")
+    groups = np.sort(capacity_metric_dict.keys())
+    group_labels = ["50", "100", "150", "200", "250", "300", "350", "400",
+              "450", "500+"]
+
+    fig, axes = plt.subplots(ncols=10, nrows=1, figsize=(21, 5))
+    plt.subplots_adjust(wspace=0.5)
+    i = 0
+    for group in groups:
+        axes[i].set_title(group_labels[i])
+        axes[i].boxplot(capacity_metric_dict[group]["values"])
+        i += 1
+
+    fig.suptitle("Box Plot for Startup Times per Down Capacity Groups")
+    fig.text(0.09, 0.5, "Startup Time [sec]", va='center', rotation='vertical')
+    # plt.show()
+    plt.savefig(fig_path + fig_file, dpi=900)
+    plt.close()
+
+
+    return 0
+
 def prepare_data_to_plot_per_capacity_groups(capacity_metric_dict, target):
 
     if target == "startup":
         print "Preparing data to plot 95 percentile for inferred startup time per down capacity group."
+        create_box_plot_startup(capacity_metric_dict)
     else:
         print "Preparing data to plot most common inferred resolution per down capacity group."
 
@@ -1166,7 +1196,8 @@ def prepare_data_to_plot_per_capacity_groups(capacity_metric_dict, target):
     down_capacity_group_df["num_deployments"] = num_deployments
     down_capacity_group_df["num_video_sessions"] = num_video_sessions
 
-    down_capacity_group_df.sort_values(["group"], inplace=True, ascending=False)
+    # down_capacity_group_df.sort_values(["group"], inplace=True, ascending=False)
+    down_capacity_group_df.sort_values(["group"], inplace=True)
 
     down_capacity_group_df.to_csv(csv_path + csv_file, index=False)
     # print down_capacity_group_df
@@ -1180,7 +1211,16 @@ def prepare_data_to_plot_per_capacity_groups(capacity_metric_dict, target):
 
 def plot_bars_down_capacity_resolution(res_mode_dict):
 
+    res_mode_dict["050"] = res_mode_dict.pop("50")
+
     res_freqs_df = pd.DataFrame.from_dict(res_mode_dict, orient='index')
+
+    groups = ["50", "100", "150", "200", "250", "300", "350", "400",
+              "450", "500+"]
+    x_pos = np.arange(len(groups))
+
+    res_freqs_df.sort_index(inplace=True)
+    res_freqs_df = res_freqs_df[["240", "360", "480", "720", "1080"]]
 
     figs_path = "./Figures/Down_Capacity_Groups/"
     fig_name = "video_sessions_resolutions_per_down_capacity_groups.png"
@@ -1189,6 +1229,8 @@ def plot_bars_down_capacity_resolution(res_mode_dict):
         os.makedirs(figs_path)
     # fig, ax = plt.subplots()
     ax = res_freqs_df.plot.bar(rot=0)
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels(groups)
     plt.ylabel("Num. Video Sessions")
     plt.xlabel("Groups - Down Capacity [Mbps]")
     plt.title("Num. Of Videos Sessions per Resolution by Down Capacity Groups")
@@ -1200,18 +1242,16 @@ def plot_bars_down_capacity_resolution(res_mode_dict):
 
 def plot_bars_down_capacity_startup(down_capacity_df):
 
-
     figs_path = "./Figures/Down_Capacity_Groups/"
     fig_name = "Startup_per_down_capacity_groups.png"
 
     if not os.path.exists(figs_path):
         os.makedirs(figs_path)
 
-    # groups = ["500 Mbps", "100 Mbps","150 Mbps","200 Mbps","250 Mbps","300 Mbps","350 Mbps","400 Mbps", "450 Mbps", "500+ Mbps"]
-    # groups = ["500+ Mbps", "450 Mbps", "400 Mbps", "350 Mbps", "300 Mbps", "250 Mbps", "200 Mbps", "150 Mbps",
-    #           "100 Mbps", "50 Mbps"]
-    groups = ["500+", "450", "400", "350", "300", "250", "200", "150",
-              "100", "50"]
+    groups = ["50", "100", "150", "200", "250", "300", "350", "400",
+              "450", "500+"]
+
+    # groups = ["500+", "450", "400", "350", "300", "250", "200", "150", "100", "50"]
 
     x_pos = np.arange(len(groups))
 
