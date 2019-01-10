@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np
 import csv
+from scipy import stats
 from datetime import datetime
 import argparse
 import seaborn as sns
@@ -1039,9 +1040,9 @@ def group_deployments_by_down_capacity(capacity_df):
 
     return capacity_df
 
-def get_metric_by_down_capacity_groups(capacity_df, metric_df):
+def get_metric_by_down_capacity_groups(capacity_df, metric_df, target):
 
-    print "Getting list of values for inference metric based on Down Speeds groups."
+    print "Getting list of values for "+target+" metric based on Down Speeds groups."
 
     groups_list = np.sort(capacity_df.group.unique())
 
@@ -1068,36 +1069,112 @@ def get_metric_by_down_capacity_groups(capacity_df, metric_df):
 
     return capacity_metric_dict
 
-def prepare_data_to_plot_per_capacity_groups(capacity_metric_dict):
+def prepare_data_to_plot_per_capacity_groups(capacity_metric_dict, target):
 
-    print "Preparing data to plot 95 percentile for infered metric per down capacity group."
+    if target == "startup":
+        print "Preparing data to plot 95 percentile for inferred startup time per down capacity group."
+    else:
+        print "Preparing data to plot most common inferred resolution per down capacity group."
 
     groups = []
-    percentiles = []
+    results = []
     num_deployments = []
-    down_capacity_group_df = pd.DataFrame(columns=["group", "metric"])
+    num_video_sessions = []
+    down_capacity_group_df = pd.DataFrame(columns=["group", "metric", "num_deployments", "num_video_sessions"])
     for group in capacity_metric_dict:
         try:
-            # print group + ": " + str(np.percentile(capacity_metric_dict[group], 96))
-            percentiles.append(np.percentile(capacity_metric_dict[group]["values"], 96))
+            if target == "startup":
+                results.append(np.percentile(capacity_metric_dict[group]["values"], 96))
+            else:
+                mode = stats.mode(capacity_metric_dict[group]["values"])
+                if mode[0][0] is None:
+                    mode = 0
+                else:
+                    mode = mode[0][0]
+                results.append(mode)
+            num_video_sessions.append(len(capacity_metric_dict[group]["values"]))
             num_deployments.append(capacity_metric_dict[group]["num_deployments"])
-            groups.append(group)
+            if group == "50":
+                groups.append("050")
+            else:
+                groups.append(group)
+
         except Exception as excep:
             print "Group "+str(group)+" is empty."
-            percentiles.append(0)
+            results.append(0)
+            num_video_sessions.append(len(capacity_metric_dict[group]["values"]))
             num_deployments.append(capacity_metric_dict[group]["num_deployments"])
-            groups.append(group)
+            if group == "50":
+                groups.append("050")
+            else:
+                groups.append(group)
+
             print str(excep)
 
     down_capacity_group_df["group"] = groups
-    down_capacity_group_df["metric"] = percentiles
+    down_capacity_group_df["metric"] = results
     down_capacity_group_df["num_deployments"] = num_deployments
+    down_capacity_group_df["num_video_sessions"] = num_video_sessions
 
     down_capacity_group_df.sort_values(["group"], inplace=True, ascending=False)
     print down_capacity_group_df
 
+    if target == "startup":
+        plot_bars_down_capacity_startup(down_capacity_group_df)
+
     return 0
 
+def plot_bars_down_capacity_startup(down_capacity_df):
+
+
+    # groups = ["500 Mbps", "100 Mbps","150 Mbps","200 Mbps","250 Mbps","300 Mbps","350 Mbps","400 Mbps", "450 Mbps", "500+ Mbps"]
+    groups = ["500+ Mbps", "450 Mbps", "400 Mbps", "350 Mbps", "300 Mbps", "250 Mbps", "200 Mbps", "150 Mbps",
+              "100 Mbps", "50 Mbps"]
+
+    x_pos = np.arange(len(groups))
+
+    num_sessions = down_capacity_df["num_video_sessions"].values
+
+    results = down_capacity_df["metric"].values
+
+    fig, ax = plt.subplots()
+    width = 0.75  # the width of the bars
+    rects1 = ax.bar(x_pos, results, width)
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels(groups)
+    # for i, v in enumerate(num_sessions):
+    #     # ax.text(v + 3, i + .25, str(v))
+    #     ax.text(i, 10, str(v), va='center')
+
+    plt.ylabel("Startup Time [sec]")
+    plt.title("95 Percentile Startup per Down Speed Groups")
+
+    def autolabel(rects):
+        """
+        Attach a text label above each bar displaying its height
+        """
+        i = 0
+        for rect in rects:
+            height = rect.get_height()
+            ax.text(rect.get_x() + rect.get_width() / 2., 1.01 * height,
+                    str(num_sessions[i]),
+                    ha='center', va='bottom')
+            i += 1
+
+    autolabel(rects1)
+    plt.show()
+    plt.close()
+
+    # plt.bar(x_pos, results)
+    # plt.xticks(x_pos, groups)
+    # plt.ylabel("Startup Time [sec]")
+    # plt.title("95 Percentile Startup per Down Speed Groups")
+    # for i, v in enumerate(num_sessions):
+    #     plt.text(v, i, " " + str(v), color='blue', va='center', fontweight='bold')
+    # plt.show()
+    # plt.close()
+
+    return 0
 
 def main():
 
@@ -1125,9 +1202,9 @@ def main():
     # plot_CDF_target(metric_df, target)
     # prepare_data_to_plot(bitrate_df, metric_df, target)
 
-    capacity_metric_dict = get_metric_by_down_capacity_groups(capacity_df, metric_df)
+    capacity_metric_dict = get_metric_by_down_capacity_groups(capacity_df, metric_df, target)
 
-    prepare_data_to_plot_per_capacity_groups(capacity_metric_dict)
+    prepare_data_to_plot_per_capacity_groups(capacity_metric_dict, target)
 
     print "Pause"
     # prepare_data_to_plot_with_service(bitrate_df, metric_df, target, bis_metric)
