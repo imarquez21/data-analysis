@@ -38,12 +38,13 @@ def main():
     args = vars(parser.parse_args())
 
     pickle = args["file"]
+    outdir = args["outdir"]
 
     all_res_pickle = pd.read_pickle(pickle)
 
     all_res_no_first_min = remove_first_minute(all_res_pickle)
 
-    save_pickle(all_res_no_first_min)
+    save_pickle(all_res_no_first_min, outdir)
 
 
     print "Script End"
