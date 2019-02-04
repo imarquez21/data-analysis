@@ -4,7 +4,7 @@ import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-import seaborn
+import seaborn as sns
 
 
 def plot_CDF(service, sts_times):
@@ -20,12 +20,12 @@ def plot_CDF(service, sts_times):
     sorted = np.sort(sts_times)
     yvals = np.arange(len(sorted)) / float(len(sorted) - 1)
 
-
-    plt.grid(0)
+    plt.grid()
     plt.title("Startup Time [" + service.title() + "] Service(s)")
     plt.xlabel("Time [sec]")
     plt.ylabel("p(x)")
-    plt.plot(sorted, yvals)
+    # plt.plot(sorted, yvals)
+    sts_times.hist(cumulative=True, density=1, bins=1000)
     plt.savefig(figs_path + fig_name, dpi=900)
     # plt.show()
     plt.close()
