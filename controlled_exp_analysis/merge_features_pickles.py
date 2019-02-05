@@ -48,7 +48,11 @@ def main():
     dir = args["dir"]
     out_dir = args["outdir"]
 
-    deployment = dir.split("/")[-1]
+    if dir.endswith("/"):
+        deployment = dir.split("/")[-2]
+    else:
+        deployment = dir.split("/")[-1]
+    
 
     features_df = merge_pickles(dir)
     save_pickle(features_df, out_dir, deployment)
