@@ -7,48 +7,48 @@ import os
 import seaborn as sns
 
 
-def plot_CDF(service, sts_times):
+def plot_CDF(service, service_resolutions):
 
     print "Plotting CDF for " + service + " service(s)."
 
-    figs_path = "./Figures/startup/"
+    figs_path = "./Figures/resolution/"
     fig_name = service + ".png"
 
     if not os.path.exists(figs_path):
         os.makedirs(figs_path)
 
-    sorted = np.sort(sts_times)
+    sorted = np.sort(service_resolutions)
     yvals = np.arange(len(sorted)) / float(len(sorted) - 1)
 
     plt.grid()
-    plt.title("Startup Time CDF [" + service.title() + "] Service(s)")
+    plt.title("Resolution CDF [" + service.title() + "] Service(s)")
     plt.xlabel("Time [sec]")
     plt.ylabel("p(x)")
     # plt.plot(sorted, yvals)
-    sts_times.hist(cumulative=True, density=1, bins=1000)
+    service_resolutions.hist(cumulative=True, density=1, bins=1000)
     plt.savefig(figs_path + fig_name, dpi=900)
     # plt.show()
     plt.close()
 
     return 0
 
-def get_startup_times(startups_df):
+def get_startup_times(all_res_df):
 
     print "Getting all startup values."
 
-    sts_times = startups_df["startup_mc"].div(1000)
+    resolutions = all_res_df["resolution_mc"]
 
-    plot_CDF("all", sts_times)
+    plot_CDF("all", resolutions)
 
     services = ["amazon", "netflix", "twitch", "youtube"]
 
     for service in services:
-        print "Getting " + service + " startup values."
+        print "Getting " + service + " resolution values."
 
-        tmp_df = startups_df[startups_df['session_id'].str.contains(service)]
-        service_sts_time = tmp_df["startup_mc"].div(1000)
+        tmp_df = all_res_df[all_res_df['session_id'].str.contains(service)]
+        service_resolutions = tmp_df["resolution_mc"]
 
-        plot_CDF(service, service_sts_time)
+        plot_CDF(service, service_resolutions)
 
     return 0
 
@@ -59,15 +59,15 @@ def main():
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-f', '--file', type=str, required=True, help="Pickle File with all startup times for all deployments.")
+    parser.add_argument('-f', '--file', type=str, required=True, help="Pickle File with all resolutions (without 1st min) for all deployments.")
 
     args = vars(parser.parse_args())
 
-    startups_pickle = args["file"]
+    resolutions_pickle = args["file"]
 
-    all_sts_df = pd.read_pickle(startups_pickle)
+    all_res_df = pd.read_pickle(resolutions_pickle)
 
-    get_startup_times(all_sts_df)
+    get_startup_times(all_res_df)
 
     print "Script End"
     print datetime.datetime.now()
