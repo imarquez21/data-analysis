@@ -17,7 +17,9 @@ def save_pickle(features_df, out_dir, deployment):
 
     return 0
 
-def merge_pickles(path):
+def merge_pickles(path, deployment):
+
+    print "Merging " + deployment + " features pickles."
 
     features_df = pd.DataFrame()
 
