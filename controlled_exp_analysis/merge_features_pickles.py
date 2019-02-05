@@ -34,7 +34,6 @@ def merge_pickles(path, deployment):
     return features_df
 
 def main():
-
     print "Script Start."
     print datetime.datetime.now()
 

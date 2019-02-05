@@ -22,8 +22,9 @@ def plot_CDF(service, service_resolutions):
 
     plt.grid()
     plt.title("Resolution CDF [" + service.title() + "] Service(s)")
-    plt.xlabel("Time [sec]")
+    plt.xlabel("Resolution[p]")
     plt.ylabel("p(x)")
+    plt.xticks((240, 480, 360, 720, 1080), ("240", "480", "360", "720", "1080"))
     # plt.plot(sorted, yvals)
     service_resolutions.hist(cumulative=True, density=1, bins=1000)
     plt.savefig(figs_path + fig_name, dpi=900)
