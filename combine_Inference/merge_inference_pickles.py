@@ -3,14 +3,20 @@ import argparse
 import datetime
 import os
 
-def save_pickle(inference_df, out_dir, target):
+def save_pickle(inference_df, out_dir, target, include_min):
 
     print "Saving " + target + " inference pickle."
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
-    pickle_file = "all_"+target+".pickle"
+    if target == "resolution":
+        if include_min == "n":
+            pickle_file = "all_" + target + "_no_first_min.pickle"
+        else:
+            pickle_file = "all_" + target + ".pickle"
+    else:
+        pickle_file = "all_" + target + ".pickle"
 
     inference_df.to_pickle(out_dir + "/" +pickle_file)
 
@@ -72,7 +78,7 @@ def main():
     for target in targets:
         path = directory + "/" + target
         inference_df = merge_inference_pickles(path, target, include_min)
-        save_pickle(inference_df, out_dir, target)
+        save_pickle(inference_df, out_dir, target, include_min)
 
 
     print "Script End"
