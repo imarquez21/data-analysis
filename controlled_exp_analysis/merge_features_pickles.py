@@ -52,9 +52,9 @@ def main():
         deployment = dir.split("/")[-2]
     else:
         deployment = dir.split("/")[-1]
-    
 
-    features_df = merge_pickles(dir)
+
+    features_df = merge_pickles(dir, deployment)
     save_pickle(features_df, out_dir, deployment)
 
 
