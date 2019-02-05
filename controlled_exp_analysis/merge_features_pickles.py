@@ -23,8 +23,11 @@ def merge_pickles(path):
 
     for root, dirs, files in os.walk(path):
         for file in files:
-            tmp_df = pd.read_pickle(root + "/" + file)
-            features_df = tmp_df.append(tmp_df)
+            if file.endswith(".pkl") or file.endswith(".pickle"):
+                tmp_df = pd.read_pickle(root + "/" + file)
+                features_df = tmp_df.append(tmp_df)
+            else:
+                continue
 
     return features_df
 
