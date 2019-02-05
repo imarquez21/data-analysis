@@ -29,7 +29,7 @@ def get_common_resolution(all_res_df):
     all_video_sessions = all_res_df.session_id.unique()
 
     print "Unique Video Sessions: "+str(len(all_video_sessions))
-
+    
     cont = 0
     for video_session in all_video_sessions:
         query_str = "session_id == '" + video_session + "'"
@@ -50,6 +50,8 @@ def get_common_resolution(all_res_df):
     return all_common_res_df
 
 def load_all_res_pickle(pickle_file):
+
+    print "Loading pickle with all resolution."
 
     all_res_df = pd.read_pickle(pickle_file)
 
