@@ -27,7 +27,7 @@ def merge_pickles(path, deployment):
         for file in files:
             if file.endswith(".pkl") or file.endswith(".pickle"):
                 tmp_df = pd.read_pickle(root + "/" + file)
-                features_df = tmp_df.append(tmp_df)
+                features_df = features_df.append(tmp_df)
             else:
                 continue
 
