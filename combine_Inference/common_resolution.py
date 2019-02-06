@@ -26,6 +26,13 @@ def get_common_resolution(all_res_df):
     session_ids_array = []
     common_res_array = []
 
+    all_res_sessions = all_res_df["session_id"]
+    all_res_values = all_res_df["resolution_mc"]
+
+    compact_all_res_df = pd.DataFrame(columns=["session_id", "resolution_mc"])
+    compact_all_res_df["session_id"] = all_res_sessions
+    compact_all_res_df["resolution_mc"] = all_res_values
+
     all_video_sessions = all_res_df.session_id.unique()
 
     print "Unique Video Sessions: "+str(len(all_video_sessions))
@@ -33,12 +40,13 @@ def get_common_resolution(all_res_df):
     cont = 0
     for video_session in all_video_sessions:
         query_str = "session_id == '" + video_session + "'"
-        tmp_df = all_res_df.query(query_str)
+        tmp_df = compact_all_res_df.query(query_str)
         if tmp_df.loc[:, "resolution_mc"].mode().size > 0:
             common_res = tmp_df.loc[:, "resolution_mc"].mode()[0]
+            session_ids_array.append(video_session)
+            common_res_array.append(common_res)
         else:
             common_res = tmp_df.iloc[0]["resolution_mc"]
-
             session_ids_array.append(video_session)
             common_res_array.append(common_res)
         cont += 1
