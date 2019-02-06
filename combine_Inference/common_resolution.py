@@ -2,6 +2,7 @@ import pandas as pd
 import argparse
 import datetime
 import os
+import pyprind
 
 
 def save_df_to_pickle(all_common_res_df, out_dir):
@@ -36,8 +37,9 @@ def get_common_resolution(all_res_df):
     all_video_sessions = all_res_df.session_id.unique()
 
     print "Unique Video Sessions: "+str(len(all_video_sessions))
+    bar = pyprind.ProgBar(len(all_video_sessions), monitor=True, title="Get Common Resolution")
 
-    cont = 0
+    # cont = 0
     for video_session in all_video_sessions:
         query_str = "session_id == '" + video_session + "'"
         tmp_df = compact_all_res_df.query(query_str)
@@ -49,9 +51,11 @@ def get_common_resolution(all_res_df):
             common_res = tmp_df.iloc[0]["resolution_mc"]
             session_ids_array.append(video_session)
             common_res_array.append(common_res)
-        cont += 1
-        print "Processed "+str(cont)+"/"+str(len(all_video_sessions))+" video sessions."
+        # cont += 1
+        # print "Processed "+str(cont)+"/"+str(len(all_video_sessions))+" video sessions."
+        bar.update()
 
+    print bar
     all_common_res_df["session_id"] = session_ids_array
     all_common_res_df["common_res"] = common_res_array
 
@@ -62,6 +66,7 @@ def load_all_res_pickle(pickle_file):
     print "Loading pickle with all resolution."
 
     all_res_df = pd.read_pickle(pickle_file)
+    all_res_df = all_res_df[:10000]
 
     return all_res_df
 
