@@ -6,6 +6,8 @@ import sys
 from shutil import copyfile
 
 def extract(tar_url, extract_path='.'):
+
+    print "Extracting file."
     tar = tarfile.open(tar_url, 'r')
     memberList = []
     finallist = []
@@ -34,7 +36,7 @@ def extract(tar_url, extract_path='.'):
 
 def process_directory(tars_dir, outdir):
 
-    print "Validating if file in "+str(tars_dir)+" is compressed."
+    print "Validating files in "+str(tars_dir)+" is compressed."
 
     for root, dirs, files in os.walk(tars_dir):
         for filename in files:
