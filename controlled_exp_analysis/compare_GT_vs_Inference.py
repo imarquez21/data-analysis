@@ -126,6 +126,55 @@ def get_resolution_differences(gt_values, inferred_values):
 
     return resolution_differences_df, res_values
 
+def map_res_values_to_defined_resolution(gt_values):
+
+    print "Mapping resolution values from GT to defined resolution values."
+    print "[240, 360, 480, 720, 1080]"
+
+    mappings_dict = {
+        240: {
+            "lower": 0,
+            "upper": 360
+        },
+        360: {
+            "lower": 359,
+            "upper": 480
+        },
+        480: {
+            "lower": 479,
+            "upper": 720
+        },
+        720: {
+            "lower": 719,
+            "upper": 1080
+        },
+        1080: {
+            "lower": 1079,
+            "upper": 1440
+        },
+        1440: {
+            "lower": 1439,
+            "upper": 2160
+        },
+        2160: {
+            "lower": 2159,
+            "upper": 4320
+        }
+    }
+
+
+    for defined_res in mappings_dict:
+        indexes_to_replace = np.where(np.logical_and(gt_values > mappings_dict[defined_res]["lower"], gt_values < mappings_dict[defined_res]["upper"]))
+        if len(indexes_to_replace[0]) == 0:
+            continue
+        else:
+            for index in indexes_to_replace[0]:
+                gt_values[index] = defined_res
+
+    return gt_values
+
+
+
 def get_values_to_compare(gt_inference_df, target):
 
     print "Obtaining values to compare."
@@ -136,6 +185,7 @@ def get_values_to_compare(gt_inference_df, target):
         get_startup_differences(gt_values, inferred_values)
     else:
         gt_values = gt_inference_df["resolution"].astype(int)
+        gt_values = map_res_values_to_defined_resolution(gt_values)
         inferred_values = gt_inference_df["resolution_mc"].astype(int)
         get_resolution_differences(gt_values, inferred_values)
 
