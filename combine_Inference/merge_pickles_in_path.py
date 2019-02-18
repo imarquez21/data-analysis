@@ -15,6 +15,8 @@ def merge_pickles(path):
 
     print "Merging pickles."
 
+    final_df = pd.DataFrame()
+
     for root, dirs, files in os.walk(path):
         for file in files:
             if file.endswith(".pkl") or file.endswith(".pickle"):
