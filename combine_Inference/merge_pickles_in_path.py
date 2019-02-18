@@ -19,7 +19,7 @@ def merge_pickles(path):
         for file in files:
             if file.endswith(".pkl") or file.endswith(".pickle"):
                 tmp_df = pd.read_pickle(root + "/" + file)
-                tmp_df = tmp_df.query("relative_timestamp > 60")
+                # tmp_df = tmp_df.query("relative_timestamp > 60")
                 final_df = final_df.append(tmp_df)
             else:
                 continue
