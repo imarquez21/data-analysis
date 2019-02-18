@@ -38,7 +38,7 @@ def main():
     args = vars(parser.parse_args())
 
     directory = args["dir"]
-    out_file = args["outdir"]
+    out_file = args["outfile"]
 
     final_df = merge_pickles(directory)
     save_pickle(final_df, out_file)
