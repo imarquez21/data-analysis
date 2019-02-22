@@ -33,7 +33,7 @@ def plot_CDF(service, service_resolutions):
 
     return 0
 
-def get_startup_times(all_res_df):
+def get_resolutions(all_res_df):
 
     print "Getting all startup values."
 
@@ -68,7 +68,7 @@ def main():
 
     all_res_df = pd.read_pickle(resolutions_pickle)
 
-    get_startup_times(all_res_df)
+    get_resolutions(all_res_df)
 
     print "Script End"
     print datetime.datetime.now()
