@@ -14,7 +14,7 @@ def save_df_to_pickle(all_common_res_df, out_dir):
 
     pickle_file = "all_deployments_common_res.pickle"
 
-    all_common_res_df.to_pickle(out_dir + "/" +pickle_file)
+    all_common_res_df.to_pickle(out_dir + "/" + pickle_file)
 
     return 0
 
@@ -63,7 +63,7 @@ def get_common_resolution(all_res_df):
 
 def load_all_res_pickle(pickle_file):
 
-    print "Loading pickle with all resolution."
+    print "Loading pickle with all resolutions."
 
     all_res_df = pd.read_pickle(pickle_file)
     all_res_df = all_res_df[:10000]
