@@ -17,6 +17,20 @@ ta_fts_no_infocom = [
   'serverByteCount',
 ]
 
+gt_ta_fts_no_infocom = [
+  "total_throughput_up",
+  "total_throughput_down",
+  "service_Video_throughput_up",
+  "service_Video_throughput_down",
+  "service_non_video_throughput_up",
+  "service_non_video_throughput_down",
+  "parallel_flows",
+  # 'userPacketCount',
+  # 'serverPacketCount',
+  # 'userByteCount',
+  # 'serverByteCount',
+]
+
 chunk_fts = [
   "chunk_start_time",
   "chunk_end_time",
@@ -81,6 +95,7 @@ chunk_fts = [
 ]
 
 features = ta_fts_no_infocom + chunk_fts
+features_gt = gt_ta_fts_no_infocom + chunk_fts
 
 def save_pickle_and_csv(df_gt, df_deployment, out_dir):
 
@@ -92,7 +107,7 @@ def save_pickle_and_csv(df_gt, df_deployment, out_dir):
     # df_gt.to_pickle(out_dir + "/GT_features.pickle")
     df_gt.to_csv(out_dir + "/GT_features.csv")
     # df_deployment.to_pickle(out_dir + "/Deployment_features.pickle")
-    df_deployment.to_pickle(out_dir + "/Deployment_features.csv")
+    df_deployment.to_csv(out_dir + "/Deployment_features.csv")
 
     return 0
 
@@ -101,21 +116,21 @@ def select_columns(df_gt, df_deployment, target, out_dir):
 
     print "Selecting colunmns to make comparisson."
 
-    stt_gt = ["startup_time"]
-    res_gt = ["resolution"]
+    stt_gt = ["startup_time", "absolute_timestamp"]
+    res_gt = ["resolution", "absolute_timestamp"]
 
-    stt_inf = ["startup_mc"]
-    res_inf = ["resolution_mc"]
+    stt_inf = ["startup_mc", "absolute_timestamp"]
+    res_inf = ["resolution_mc", "absolute_timestamp"]
 
     if target == 's':
-        gt_columns = features + stt_gt
+        gt_columns = features_gt + stt_gt
         deployment_columns = features + stt_inf
     else:
-        gt_columns = features + res_gt
+        gt_columns = features_gt + res_gt
         deployment_columns = features + res_inf
 
-    new_df_gt = df_gt(columns=gt_columns)
-    new_df_deployment = df_deployment(columns=deployment_columns)
+    new_df_gt = df_gt[gt_columns]
+    new_df_deployment = df_deployment[deployment_columns]
 
     save_pickle_and_csv(new_df_gt, new_df_deployment, out_dir)
 
