@@ -4,6 +4,103 @@ import datetime
 import pyprind
 import os
 
+ta_fts_no_infocom = [
+  "total_throughput_up",
+  "total_throughput_down",
+  "service_Video_throughput_up",
+  "service_Video_throughput_down",
+  "service_non_video_throughput_up",
+  "service_non_video_throughput_down",
+  "parallel_flows",
+  'userPacketCount',
+  'serverPacketCount',
+  'userByteCount',
+  'serverByteCount',
+]
+
+gt_ta_fts_no_infocom = [
+  "total_throughput_up",
+  "total_throughput_down",
+  "service_Video_throughput_up",
+  "service_Video_throughput_down",
+  "service_non_video_throughput_up",
+  "service_non_video_throughput_down",
+  "parallel_flows",
+  # 'userPacketCount',
+  # 'serverPacketCount',
+  # 'userByteCount',
+  # 'serverByteCount',
+]
+
+chunk_fts = [
+  "chunk_start_time",
+  "chunk_end_time",
+  "10_EWMA_chunksizes",
+  "10_std_chunksize",
+  "10_avg_chunksize",
+  "10_max_chunksize",
+  "10_min_chunksize",
+  "10_chunksizes_50",
+  "10_chunksizes_75",
+  "10_chunksizes_85",
+  "10_chunksizes_90",
+  "allprev_std_chunksize",
+  "allprev_avg_chunksize",
+  "allprev_max_chunksize",
+  "allprev_min_chunksize",
+  "allprev_chunksizes_50",
+  "allprev_chunksizes_75",
+  "allprev_chunksizes_85",
+  "allprev_chunksizes_90",
+  "cumsum_chunksizes",
+  "curr_chunksize",
+  "size_diff_previous",
+  "all_prev_up_chunk_iat_avg",
+  "all_prev_up_chunk_iat_std",
+  "all_prev_up_chunk_iat_min",
+  "all_prev_up_chunk_iat_max",
+  "all_prev_up_chunk_iat_50",
+  "all_prev_up_chunk_iat_75",
+  "all_prev_up_chunk_iat_85",
+  "all_prev_up_chunk_iat_90",
+  "all_prev_down_chunk_iat_avg",
+  "all_prev_down_chunk_iat_std",
+  "all_prev_down_chunk_iat_min",
+  "all_prev_down_chunk_iat_max",
+  "all_prev_down_chunk_iat_50",
+  "all_prev_down_chunk_iat_75",
+  "all_prev_down_chunk_iat_85",
+  "all_prev_down_chunk_iat_90",
+  'up_chunk_iat_avg',
+  'up_chunk_iat_std',
+  'up_chunk_iat_min',
+  'up_chunk_iat_max',
+  'up_chunk_iat_50',
+  'up_chunk_iat_75',
+  'up_chunk_iat_85',
+  'up_chunk_iat_90',
+  'down_chunk_iat_avg',
+  'down_chunk_iat_std',
+  'down_chunk_iat_min',
+  'down_chunk_iat_max',
+  'down_chunk_iat_50',
+  'down_chunk_iat_75',
+  'down_chunk_iat_85',
+  'down_chunk_iat_90',
+  "current_chunk_iat",
+  "up_down_ratio",
+  "n_prev_up_chunk",
+  "n_prev_down_chunk",
+  "n_chunks_down", #number of chunks down in time slot
+  "n_chunks_up",  #number of chunks up in time slot
+]
+
+res_gt = ["resolution", "absolute_timestamp"]
+res_inf = ["resolution_mc", "absolute_timestamp"]
+
+features = ta_fts_no_infocom + chunk_fts
+features_gt = gt_ta_fts_no_infocom + chunk_fts
+
 def save_pickle(inference_df, out_dir, file_name):
 
     print "Saving " + file_name + " inference pickle."
@@ -101,8 +198,14 @@ def compare_res(gt_df, inference_df):
 
     slice_inference_df = inference_df.iloc[startloc:endloc]
 
+    gt_columns = features_gt + res_gt
+    deployment_columns = features + res_inf
+
     gt_common_res_df = get_common_res(gt_df, gt=True)
     inference_common_res_df = get_common_res(slice_inference_df, gt=False)
+
+    gt_df = gt_df[gt_columns]
+    slice_inference_df = slice_inference_df[deployment_columns]
 
     save_pickle(gt_df, "./Pickles_and_CSVs", "GT_dataframe")
     save_pickle(slice_inference_df, "./Pickles_and_CSVs", "Inference_Slice")
