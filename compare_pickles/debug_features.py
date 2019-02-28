@@ -95,8 +95,8 @@ chunk_fts = [
   "n_chunks_up",  #number of chunks up in time slot
 ]
 
-res_gt = ["resolution", "absolute_timestamp"]
-res_inf = ["resolution_mc", "absolute_timestamp"]
+res_gt = ["resolution", "absolute_timestamp", "session_id"]
+res_inf = ["resolution_mc", "absolute_timestamp", "session_id"]
 
 features = ta_fts_no_infocom + chunk_fts
 features_gt = gt_ta_fts_no_infocom + chunk_fts
