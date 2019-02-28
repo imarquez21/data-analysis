@@ -773,9 +773,13 @@ def clean_pickle(df):
 
     print "Cleaning Pickle"
 
-    indexes_list = df.index[df['session_id'].isin(session_ids)].tolist()
-
+    # To keep the rows that are in the session_ids array and remove the rest.
+    indexes_list = df.index[~df['session_id'].isin(session_ids)].tolist()
     clean_df = df.drop(indexes_list)
+
+    # To remove the rows that are in the session_ids array
+    # indexes_list = df.index[df['session_id'].isin(session_ids)].tolist()
+    # clean_df = df.drop(indexes_list)
 
     return clean_df
 
