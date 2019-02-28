@@ -132,8 +132,6 @@ def get_common_res(df, gt):
     common_res_array = []
     abs_timestamps_array = []
 
-
-
     all_res_sessions = df["session_id"]
     all_res_values = df[column_tag]
     all_ts_values = df["absolute_timestamp"]
@@ -198,7 +196,8 @@ def compare_res(gt_df, inference_df):
 
     slice_inference_df = inference_df.iloc[startloc:endloc]
 
-    gt_columns = features_gt + res_gt
+    # gt_columns = features_gt + res_gt
+    gt_columns = features + res_gt
     deployment_columns = features + res_inf
 
     gt_common_res_df = get_common_res(gt_df, gt=True)
@@ -218,8 +217,6 @@ def load_model(gt_pickle, inference_pickle):
 
     gt_df = pd.read_pickle(gt_pickle)
     inference_df = pd.read_pickle(inference_pickle)
-
-    # print "Pause"
 
     compare_res(gt_df, inference_df)
     return gt_df, inference_df
