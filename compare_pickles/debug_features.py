@@ -196,8 +196,8 @@ def compare_res(gt_df, inference_df):
 
     slice_inference_df = inference_df.iloc[startloc:endloc]
 
-    # gt_columns = features_gt + res_gt
-    gt_columns = features + res_gt
+    gt_columns = features_gt + res_gt
+    # gt_columns = features + res_gt
     deployment_columns = features + res_inf
 
     gt_common_res_df = get_common_res(gt_df, gt=True)
@@ -213,7 +213,7 @@ def compare_res(gt_df, inference_df):
 
     return 0
 
-def load_model(gt_pickle, inference_pickle):
+def load_pickles(gt_pickle, inference_pickle):
 
     gt_df = pd.read_pickle(gt_pickle)
     inference_df = pd.read_pickle(inference_pickle)
@@ -232,7 +232,7 @@ def main():
 
     args = vars(parser.parse_args())
 
-    load_model(args["gt"], args["deployment"])
+    load_pickles(args["gt"], args["deployment"])
 
     print "Script End"
     print datetime.datetime.now()
